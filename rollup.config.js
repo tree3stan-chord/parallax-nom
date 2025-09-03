@@ -39,8 +39,8 @@ export default [
     createConfig('esm', 'parallax-visualizer.esm.min.js', true),
     
     // CommonJS
-    createConfig('cjs', 'parallax-visualizer.cjs.js'),
-    createConfig('cjs', 'parallax-visualizer.cjs.min.js', true),
+    createConfig('cjs', 'parallax-visualizer.cjs.cjs'),
+    createConfig('cjs', 'parallax-visualizer.cjs.min.cjs', true),
     
     // UMD for browsers
     createConfig('umd', 'parallax-visualizer.umd.js'),

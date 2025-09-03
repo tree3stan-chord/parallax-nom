@@ -100,7 +100,7 @@ jobs:
       run: npm run build
     
     - name: Test import integrity
-      run: node -e "require('./dist/parallax-visualizer.cjs.js')"
+      run: node -e "require('./dist/parallax-visualizer.cjs.cjs')"
     
     - name: Check bundle size
       run: |

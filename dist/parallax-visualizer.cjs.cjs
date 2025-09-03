@@ -3284,4 +3284,4 @@ exports.getAllVisualizations = getAllVisualizations;
 exports.getVisualizationByName = getVisualizationByName;
 exports.validateAudioSource = validateAudioSource;
 exports.visualizationRegistry = visualizationRegistry;
-//# sourceMappingURL=parallax-visualizer.cjs.js.map
+//# sourceMappingURL=parallax-visualizer.cjs.cjs.map
