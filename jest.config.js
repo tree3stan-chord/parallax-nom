@@ -13,7 +13,7 @@ export default {
     transform: {
         '^.+\\.jsx?$': 'babel-jest'
     },
-    moduleNameMapping: {
+    moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1'
     },
     testTimeout: 10000,
