@@ -11,8 +11,7 @@ export default {
         filename: 'parallax-visualizer.js',
         library: 'ParallaxVisualizer',
         libraryTarget: 'umd',
-        globalObject: 'this',
-        clean: true
+        globalObject: 'this'
     },
     module: {
         rules: [
