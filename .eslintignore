@@ -1,0 +1,7 @@
+dist/
+docs-dist/
+node_modules/
+coverage/
+*.min.js
+scripts/prepare-release.js
+test-package.js

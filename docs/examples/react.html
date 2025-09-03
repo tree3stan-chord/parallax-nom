@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Visualizer - React Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .example-section {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .example-section h2 {
+            color: #00ff00;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .code-example {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .code-example pre {
+            margin: 0;
+            color: #aaa;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .highlight {
+            color: #00ff00;
+        }
+
+        .string {
+            color: #ffaa00;
+        }
+
+        .comment {
+            color: #666;
+        }
+
+        .keyword {
+            color: #00aaff;
+        }
+
+        .tag {
+            color: #ff6666;
+        }
+
+        .attr {
+            color: #66ff66;
+        }
+
+        .description {
+            color: #ccc;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #00ff00;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚛️ Parallax Visualizer - React Examples</h1>
+
+        <div class="example-section">
+            <h2>🚀 Basic Usage</h2>
+            <div class="description">
+                The simplest way to use Parallax Visualizer in a React application. 
+                Just import the component and pass your desired props.
+            </div>
+            
+            <div class="code-example">
+                <pre><code><span class="keyword">import</span> <span class="tag">React</span> <span class="keyword">from</span> <span class="string">'react'</span>;
+<span class="keyword">import</span> { <span class="tag">ParallaxVisualizer</span> } <span class="keyword">from</span> <span class="string">'parallax-visualizer/react'</span>;
+
+<span class="keyword">function</span> <span class="highlight">App</span>() {
+    <span class="keyword">return</span> (
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"app"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;h1&gt;</span>My Music Visualizer<span class="tag">&lt;/h1&gt;</span>
+            <span class="tag">&lt;ParallaxVisualizer</span>
+                <span class="attr">mode</span>=<span class="string">"bars"</span>
+                <span class="attr">audioSource</span>=<span class="string">"microphone"</span>
+                <span class="attr">lolcat</span>={<span class="keyword">true</span>}
+                <span class="attr">style</span>={{ <span class="attr">width</span>: <span class="string">'100%'</span>, <span class="attr">height</span>: <span class="string">'400px'</span> }}
+            <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    );
+}
+
+<span class="keyword">export default</span> <span class="highlight">App</span>;</code></pre>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <h2>🎛️ Advanced Usage with Controls</h2>
+            <div class="description">
+                A more advanced example with mode switching, audio source controls, and event handling.
+            </div>
+            
+            <div class="code-example">
+                <pre><code><span class="keyword">import</span> <span class="tag">React</span>, { <span class="attr">useState</span>, <span class="attr">useRef</span> } <span class="keyword">from</span> <span class="string">'react'</span>;
+<span class="keyword">import</span> { <span class="tag">ParallaxVisualizer</span>, <span class="tag">VisualizerControls</span> } <span class="keyword">from</span> <span class="string">'parallax-visualizer/react'</span>;
+
+<span class="keyword">function</span> <span class="highlight">MusicPlayer</span>() {
+    <span class="keyword">const</span> [mode, setMode] = <span class="highlight">useState</span>(<span class="string">'bars'</span>);
+    <span class="keyword">const</span> [isPlaying, setIsPlaying] = <span class="highlight">useState</span>(<span class="keyword">false</span>);
+    <span class="keyword">const</span> [audioSource, setAudioSource] = <span class="highlight">useState</span>(<span class="string">'microphone'</span>);
+    <span class="keyword">const</span> visualizerRef = <span class="highlight">useRef</span>();
+
+    <span class="keyword">const</span> <span class="highlight">handleStart</span> = () => {
+        visualizerRef.current?.<span class="highlight">start</span>();
+        <span class="highlight">setIsPlaying</span>(<span class="keyword">true</span>);
+    };
+
+    <span class="keyword">const</span> <span class="highlight">handleStop</span> = () => {
+        visualizerRef.current?.<span class="highlight">stop</span>();
+        <span class="highlight">setIsPlaying</span>(<span class="keyword">false</span>);
+    };
+
+    <span class="keyword">const</span> <span class="highlight">handleModeChange</span> = (newMode) => {
+        <span class="highlight">setMode</span>(newMode);
+        visualizerRef.current?.<span class="highlight">setMode</span>(newMode);
+    };
+
+    <span class="keyword">const</span> <span class="highlight">handleFileUpload</span> = (file) => {
+        visualizerRef.current?.<span class="highlight">switchSource</span>({
+            <span class="attr">type</span>: <span class="string">'file'</span>,
+            <span class="attr">file</span>: file
+        });
+        <span class="highlight">setAudioSource</span>(<span class="string">'file'</span>);
+    };
+
+    <span class="keyword">return</span> (
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"music-player"</span><span class="tag">&gt;</span>
+            <span class="comment">{/* Controls Component */}</span>
+            <span class="tag">&lt;VisualizerControls</span>
+                <span class="attr">currentMode</span>={mode}
+                <span class="attr">isPlaying</span>={isPlaying}
+                <span class="attr">onModeChange</span>={handleModeChange}
+                <span class="attr">onStart</span>={handleStart}
+                <span class="attr">onStop</span>={handleStop}
+                <span class="attr">onFileUpload</span>={handleFileUpload}
+            <span class="tag">/&gt;</span>
+
+            <span class="comment">{/* Visualizer */}</span>
+            <span class="tag">&lt;ParallaxVisualizer</span>
+                <span class="attr">ref</span>={visualizerRef}
+                <span class="attr">mode</span>={mode}
+                <span class="attr">audioSource</span>={audioSource}
+                <span class="attr">lolcat</span>={<span class="keyword">true</span>}
+                <span class="attr">adaptiveQuality</span>={<span class="keyword">true</span>}
+                <span class="attr">style</span>={{ <span class="attr">height</span>: <span class="string">'500px'</span> }}
+                <span class="attr">onSourceChange</span>={(source) => <span class="highlight">console.log</span>(<span class="string">'Source:'</span>, source)}
+                <span class="attr">onModeChange</span>={(mode) => <span class="highlight">console.log</span>(<span class="string">'Mode:'</span>, mode)}
+            <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    );
+}
+
+<span class="keyword">export default</span> <span class="highlight">MusicPlayer</span>;</code></pre>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <h2>🪝 Using Hooks</h2>
+            <div class="description">
+                Use the useParallaxVisualizer hook for more granular control over the visualization.
+            </div>
+            
+            <div class="code-example">
+                <pre><code><span class="keyword">import</span> <span class="tag">React</span>, { <span class="attr">useEffect</span> } <span class="keyword">from</span> <span class="string">'react'</span>;
+<span class="keyword">import</span> { <span class="tag">useParallaxVisualizer</span> } <span class="keyword">from</span> <span class="string">'parallax-visualizer/react'</span>;
+
+<span class="keyword">function</span> <span class="highlight">CustomVisualizer</span>() {
+    <span class="keyword">const</span> {
+        containerRef,
+        visualizer,
+        isPlaying,
+        currentMode,
+        audioIntensity,
+        <span class="attr">start</span>,
+        <span class="attr">stop</span>,
+        <span class="attr">setMode</span>,
+        <span class="attr">setLolcat</span>
+    } = <span class="highlight">useParallaxVisualizer</span>({
+        <span class="attr">mode</span>: <span class="string">'matrix'</span>,
+        <span class="attr">audioSource</span>: <span class="string">'microphone'</span>,
+        <span class="attr">lolcat</span>: <span class="keyword">true</span>
+    });
+
+    <span class="comment">// React to audio intensity changes</span>
+    <span class="highlight">useEffect</span>(() => {
+        <span class="keyword">if</span> (audioIntensity > 0.8) {
+            <span class="comment">// Switch to more intense visualization</span>
+            <span class="highlight">setMode</span>(<span class="string">'hypercube'</span>);
+        } <span class="keyword">else if</span> (audioIntensity < 0.3) {
+            <span class="comment">// Switch to calmer visualization</span>
+            <span class="highlight">setMode</span>(<span class="string">'wave'</span>);
+        }
+    }, [audioIntensity, setMode]);
+
+    <span class="keyword">return</span> (
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"custom-visualizer"</span><span class="tag">&gt;</span>
+            <span class="comment">{/* Audio intensity indicator */}</span>
+            <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"intensity-bar"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;div</span> 
+                    <span class="attr">className</span>=<span class="string">"intensity-fill"</span>
+                    <span class="attr">style</span>={{ <span class="attr">width</span>: `${audioIntensity * 100}%` }}
+                <span class="tag">/&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+
+            <span class="comment">{/* Current mode display */}</span>
+            <span class="tag">&lt;p&gt;</span>Current Mode: {currentMode}<span class="tag">&lt;/p&gt;</span>
+
+            <span class="comment">{/* Controls */}</span>
+            <span class="tag">&lt;button</span> <span class="attr">onClick</span>={isPlaying ? stop : start}<span class="tag">&gt;</span>
+                {isPlaying ? <span class="string">'Stop'</span> : <span class="string">'Start'</span>}
+            <span class="tag">&lt;/button&gt;</span>
+
+            <span class="comment">{/* Visualizer container */}</span>
+            <span class="tag">&lt;div</span> 
+                <span class="attr">ref</span>={containerRef}
+                <span class="attr">style</span>={{ <span class="attr">height</span>: <span class="string">'400px'</span>, <span class="attr">border</span>: <span class="string">'1px solid #333'</span> }}
+            <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    );
+}
+
+<span class="keyword">export default</span> <span class="highlight">CustomVisualizer</span>;</code></pre>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <h2>🌐 Context Provider</h2>
+            <div class="description">
+                Share visualizer state across multiple components using the VisualizerProvider.
+            </div>
+            
+            <div class="code-example">
+                <pre><code><span class="keyword">import</span> <span class="tag">React</span> <span class="keyword">from</span> <span class="string">'react'</span>;
+<span class="keyword">import</span> { 
+    <span class="tag">VisualizerProvider</span>, 
+    <span class="tag">useVisualizerContext</span> 
+} <span class="keyword">from</span> <span class="string">'parallax-visualizer/react'</span>;
+
+<span class="comment">// Child component that uses the context</span>
+<span class="keyword">function</span> <span class="highlight">VisualizerStats</span>() {
+    <span class="keyword">const</span> { audioIntensity, fps, currentMode } = <span class="highlight">useVisualizerContext</span>();
+
+    <span class="keyword">return</span> (
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"stats"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;p&gt;</span>Audio Intensity: {(audioIntensity * 100).toFixed(1)}%<span class="tag">&lt;/p&gt;</span>
+            <span class="tag">&lt;p&gt;</span>FPS: {fps}<span class="tag">&lt;/p&gt;</span>
+            <span class="tag">&lt;p&gt;</span>Mode: {currentMode}<span class="tag">&lt;/p&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    );
+}
+
+<span class="comment">// Main app component</span>
+<span class="keyword">function</span> <span class="highlight">App</span>() {
+    <span class="keyword">return</span> (
+        <span class="tag">&lt;VisualizerProvider</span>
+            <span class="attr">mode</span>=<span class="string">"bars"</span>
+            <span class="attr">audioSource</span>=<span class="string">"microphone"</span>
+            <span class="attr">lolcat</span>={<span class="keyword">true</span>}
+        <span class="tag">&gt;</span>
+            <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="string">"app"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;VisualizerStats</span> <span class="tag">/&gt;</span>
+                <span class="comment">{/* Other components can access visualizer state */}</span>
+            <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;/VisualizerProvider&gt;</span>
+    );
+}
+
+<span class="keyword">export default</span> <span class="highlight">App</span>;</code></pre>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <h2>📋 Available Props & Methods</h2>
+            
+            <div class="description"><strong>ParallaxVisualizer Component Props:</strong></div>
+            <ul class="feature-list">
+                <li><strong>mode</strong>: Visualization mode (string)</li>
+                <li><strong>audioSource</strong>: Audio input source ('microphone', 'file', 'stream')</li>
+                <li><strong>lolcat</strong>: Enable rainbow colors (boolean)</li>
+                <li><strong>adaptiveQuality</strong>: Enable performance optimization (boolean)</li>
+                <li><strong>style</strong>: CSS styles object</li>
+                <li><strong>className</strong>: CSS class name</li>
+                <li><strong>onSourceChange</strong>: Audio source change callback</li>
+                <li><strong>onModeChange</strong>: Mode change callback</li>
+                <li><strong>onStart</strong>: Visualization start callback</li>
+                <li><strong>onStop</strong>: Visualization stop callback</li>
+            </ul>
+
+            <div class="description"><strong>useParallaxVisualizer Hook Returns:</strong></div>
+            <ul class="feature-list">
+                <li><strong>containerRef</strong>: React ref for the container element</li>
+                <li><strong>visualizer</strong>: ParallaxVisualizer instance</li>
+                <li><strong>isPlaying</strong>: Current playback state</li>
+                <li><strong>currentMode</strong>: Current visualization mode</li>
+                <li><strong>audioIntensity</strong>: Current audio intensity (0-1)</li>
+                <li><strong>start()</strong>: Start visualization</li>
+                <li><strong>stop()</strong>: Stop visualization</li>
+                <li><strong>setMode(mode)</strong>: Change visualization mode</li>
+                <li><strong>setLolcat(enabled)</strong>: Toggle rainbow colors</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

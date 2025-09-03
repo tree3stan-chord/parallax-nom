@@ -1,0 +1,64 @@
+# Development files
+.github/
+docs/
+docs-dist/
+examples/
+tests/
+coverage/
+test-results.xml
+
+# Build tools
+webpack.config.js
+rollup.config.js
+babel.config.js
+jest.config.js
+audit-ci.json
+.eslintrc.js
+.eslintignore
+
+# Development dependencies
+node_modules/
+.nyc_output/
+.coverage/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache
+.npm/
+.cache/
+.parcel-cache/
+
+# Temporary files
+*.tmp
+*.temp

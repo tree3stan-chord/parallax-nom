@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Visualizer - Vanilla JS Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #001100, #000300);
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 20, 0, 0.9);
+            border-bottom: 2px solid #0f0;
+            box-shadow: 0 2px 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px #0f0;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #0f0; }
+            to { text-shadow: 0 0 30px #0f0, 0 0 40px #0a0; }
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 120px);
+        }
+        
+        .controls {
+            width: 350px;
+            background: rgba(0, 30, 0, 0.7);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+            max-height: 100%;
+            overflow-y: auto;
+        }
+        
+        .visualizer-area {
+            flex: 1;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 100%;
+            font-family: monospace;
+            font-size: 8px;
+            line-height: 1;
+            overflow: hidden;
+            white-space: pre;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #0a0;
+            border-radius: 8px;
+            background: rgba(0, 50, 0, 0.4);
+        }
+        
+        .section h3 {
+            margin: 0 0 15px 0;
+            color: #0f0;
+            border-bottom: 1px solid #0a0;
+            padding-bottom: 8px;
+            font-size: 1.1em;
+            text-shadow: 0 0 5px #0f0;
+        }
+        
+        .btn {
+            background: linear-gradient(145deg, #001100, #003300);
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:hover {
+            background: linear-gradient(145deg, #003300, #005500);
+            box-shadow: 0 4px 15px rgba(0, 255, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn.active {
+            background: linear-gradient(145deg, #0f0, #0c0);
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .file-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: inherit;
+            margin: 8px 0;
+        }
+        
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .mode-btn {
+            background: linear-gradient(145deg, #001100, #002200);
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn:hover {
+            background: linear-gradient(145deg, #002200, #004400);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(145deg, #0f0, #0c0);
+            color: #000;
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        .category-selector {
+            width: 100%;
+            background: #000;
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .info-panel {
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid #090;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .status {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #0f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 400px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+        
+        .status.error {
+            border-color: #f00;
+            color: #f00;
+            animation: flash 0.5s;
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #333;
+            border: 2px solid #0f0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .toggle.active {
+            background: #0f0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: #0f0;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .toggle.active .toggle-slider {
+            left: 32px;
+            background: #000;
+        }
+        
+        .drag-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 0, 255, 0.2);
+            border: 3px dashed #f0f;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #f0f;
+            text-shadow: 0 0 10px #f0f;
+        }
+        
+        .visualizer-area.drag-over .drag-overlay {
+            display: flex;
+        }
+        
+        .keyboard-help {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 15px;
+            padding: 10px;
+            border-top: 1px solid #0a0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 PARALLAX VISUALIZER 🎵</h1>
+        <p>Vanilla JavaScript Implementation - Real-time ASCII Audio Visualization</p>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <div class="section">
+                <h3>🎤 Audio Sources</h3>
+                <button class="btn" id="micBtn">🎤 Start Microphone</button>
+                <input type="file" class="file-input" id="fileInput" accept="audio/*">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" id="playBtn" disabled>▶️ Play</button>
+                    <button class="btn" id="pauseBtn" disabled>⏸️ Pause</button>
+                    <button class="btn" id="stopBtn">⏹️ Stop</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🌈 Effects</h3>
+                <div class="toggle-container">
+                    <span>Rainbow Colors:</span>
+                    <div class="toggle" id="lolcatToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📂 Categories</h3>
+                <select class="category-selector" id="categorySelector">
+                    <option value="basic">BASIC (10 modes)</option>
+                    <option value="advanced">ADVANCED (6 modes)</option>
+                    <option value="extreme">EXTREME (6 modes)</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>🎨 Visualization Modes</h3>
+                <div class="mode-grid" id="modeGrid"></div>
+            </div>
+
+            <div class="section">
+                <h3>ℹ️ Mode Information</h3>
+                <div class="info-panel" id="infoPanel">
+                    Select a visualization mode to see details about its features and complexity.
+                </div>
+            </div>
+
+            <div class="keyboard-help">
+                <strong>Keyboard Shortcuts:</strong><br>
+                M = Microphone | F = File | Space = Play/Pause<br>
+                S = Stop | C = Colors | R = Random Mode
+            </div>
+        </div>
+
+        <div class="visualizer-area" id="visualizerArea">
+            <div class="visualizer" id="visualizer">
+                🎵 PARALLAX VISUALIZER 🎵
+                
+                ╔════════════════════════════════════╗
+                ║     ASCII Audio Visualization     ║  
+                ╠════════════════════════════════════╣
+                ║  ✨ 25+ Real-time Modes           ║
+                ║  🎤 Microphone & File Support     ║
+                ║  🌈 Rainbow Color Effects         ║
+                ║  ⚡ High-Performance Engine       ║
+                ╚════════════════════════════════════╝
+                
+                Drop audio files here or use controls →
+            </div>
+            <div class="drag-overlay">
+                📁 Drop Audio File Here 📁
+            </div>
+            <div class="status" id="status">
+                Ready - Select an audio source and visualization mode
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import ParallaxVisualizer, { 
+            visualizationRegistry,
+            AudioSourcePresets
+        } from '../../src/index.js';
+
+        // Initialize visualizer
+        const visualizer = new ParallaxVisualizer({
+            container: '#visualizer',
+            mode: 'bars',
+            autoStart: false,
+            lolcat: false,
+            fileInput: true,
+            fileDropTarget: '#visualizerArea'
+        });
+
+        // DOM elements
+        const elements = {
+            micBtn: document.getElementById('micBtn'),
+            fileInput: document.getElementById('fileInput'),
+            playBtn: document.getElementById('playBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            lolcatToggle: document.getElementById('lolcatToggle'),
+            categorySelector: document.getElementById('categorySelector'),
+            modeGrid: document.getElementById('modeGrid'),
+            infoPanel: document.getElementById('infoPanel'),
+            status: document.getElementById('status'),
+            visualizerArea: document.getElementById('visualizerArea')
+        };
+
+        // State
+        let currentMode = 'bars';
+        let isLolcatEnabled = false;
+        let currentCategory = 'basic';
+
+        // Utility functions
+        function updateStatus(message, isError = false) {
+            elements.status.textContent = message;
+            elements.status.className = isError ? 'status error' : 'status';
+        }
+
+        function updateButtons() {
+            const isFileSource = visualizer.audioHandler.currentSource === 'file';
+            const isPlaying = visualizer.audioHandler.isPlaying;
+            
+            elements.playBtn.disabled = !isFileSource || isPlaying;
+            elements.pauseBtn.disabled = !isFileSource || !isPlaying;
+        }
+
+        function updateModeGrid() {
+            const modes = visualizationRegistry.getModesByCategory(currentCategory);
+            elements.modeGrid.innerHTML = '';
+            
+            modes.forEach(mode => {
+                const button = document.createElement('button');
+                button.className = `mode-btn ${mode === currentMode ? 'active' : ''}`;
+                button.textContent = mode;
+                button.onclick = () => selectMode(mode);
+                elements.modeGrid.appendChild(button);
+            });
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            visualizer.setVisualizationMode(mode);
+            updateModeGrid();
+            updateModeInfo(mode);
+            updateStatus(`Switched to ${mode} mode`);
+        }
+
+        function updateModeInfo(mode) {
+            const info = visualizationRegistry.getVisualizationInfo(mode);
+            if (info) {
+                elements.infoPanel.innerHTML = `
+                    <strong>${info.name}</strong><br>
+                    <em>Category: ${info.category}</em><br><br>
+                    ${info.description}<br><br>
+                    <strong>Complexity:</strong> ${info.complexity}<br><br>
+                    <strong>Features:</strong><br>
+                    ${info.features.map(f => `• ${f}`).join('<br>')}
+                `;
+            }
+        }
+
+        // Event handlers
+        elements.micBtn.onclick = async () => {
+            try {
+                const sourceConfig = AudioSourcePresets.getDefaultMicrophone();
+                await visualizer.setAudioSource(sourceConfig);
+                elements.micBtn.textContent = '🔴 Stop Mic';
+                elements.micBtn.classList.add('active');
+                updateStatus('Microphone active');
+                updateButtons();
+            } catch (error) {
+                updateStatus(`Microphone error: ${error.message}`, true);
+            }
+        };
+
+        elements.fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    await visualizer.setAudioSource({ type: 'file', file });
+                    elements.micBtn.textContent = '🎤 Start Microphone';
+                    elements.micBtn.classList.remove('active');
+                    updateStatus(`Loaded: ${file.name}`);
+                    updateButtons();
+                } catch (error) {
+                    updateStatus(`File error: ${error.message}`, true);
+                }
+            }
+        };
+
+        elements.playBtn.onclick = () => {
+            visualizer.play();
+            updateButtons();
+        };
+
+        elements.pauseBtn.onclick = () => {
+            visualizer.pause();
+            updateButtons();
+        };
+
+        elements.stopBtn.onclick = () => {
+            visualizer.stop();
+            elements.micBtn.textContent = '🎤 Start Microphone';
+            elements.micBtn.classList.remove('active');
+            updateButtons();
+        };
+
+        elements.lolcatToggle.onclick = () => {
+            isLolcatEnabled = !isLolcatEnabled;
+            elements.lolcatToggle.classList.toggle('active', isLolcatEnabled);
+            visualizer.options.lolcat = isLolcatEnabled;
+            updateStatus(`Rainbow colors ${isLolcatEnabled ? 'enabled' : 'disabled'}`);
+        };
+
+        elements.categorySelector.onchange = (e) => {
+            currentCategory = e.target.value;
+            updateModeGrid();
+        };
+
+        // Visualizer events
+        visualizer.on('fileLoaded', (e) => {
+            updateStatus(`File loaded: ${e.detail.file.name}`);
+        });
+
+        visualizer.on('dragOver', () => {
+            elements.visualizerArea.classList.add('drag-over');
+        });
+
+        visualizer.on('dragLeave', () => {
+            elements.visualizerArea.classList.remove('drag-over');
+        });
+
+        visualizer.on('error', (e) => {
+            updateStatus(`Error: ${e.detail.message || e.detail}`, true);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch (e.key.toLowerCase()) {
+                case 'm':
+                    elements.micBtn.click();
+                    break;
+                case 'f':
+                    elements.fileInput.click();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    if (visualizer.audioHandler.isPlaying) {
+                        elements.pauseBtn.click();
+                    } else {
+                        elements.playBtn.click();
+                    }
+                    break;
+                case 's':
+                    elements.stopBtn.click();
+                    break;
+                case 'c':
+                    elements.lolcatToggle.click();
+                    break;
+                case 'r':
+                    // Random mode
+                    const allModes = visualizer.getAvailableModes();
+                    const randomMode = allModes[Math.floor(Math.random() * allModes.length)];
+                    // Find category for the random mode
+                    const categories = ['basic', 'advanced', 'extreme'];
+                    for (const cat of categories) {
+                        if (visualizationRegistry.getModesByCategory(cat).includes(randomMode)) {
+                            elements.categorySelector.value = cat;
+                            currentCategory = cat;
+                            updateModeGrid();
+                            break;
+                        }
+                    }
+                    selectMode(randomMode);
+                    break;
+            }
+        });
+
+        // Initialize
+        updateModeGrid();
+        selectMode('bars');
+        updateButtons();
+        updateStatus('🎵 Parallax Visualizer loaded! Use keyboard shortcuts or controls to get started');
+
+        console.log('🎵 Parallax Visualizer - Vanilla JS Demo Ready!');
+        console.log('Available modes:', visualizer.getAvailableModes());
+    </script>
+</body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Visualizer - Interactive Demo</title>
+    <style>
+        :root {
+            --primary: #00ff00;
+            --primary-dark: #00aa00;
+            --bg: #000;
+            --bg-light: #0a0a0a;
+            --text: #fff;
+            --text-dim: #aaa;
+            --border: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .demo-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .visualizer-container {
+            flex: 1;
+            position: relative;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        #visualizer {
+            width: 100%;
+            height: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: 8px;
+            line-height: 1;
+            white-space: pre;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--primary);
+            padding: 0;
+            margin: 0;
+        }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+
+        .controls.hidden {
+            opacity: 0.1;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 15px;
+        }
+
+        .control-group label {
+            color: var(--text-dim);
+            font-size: 12px;
+            min-width: 80px;
+        }
+
+        select, button, input {
+            background: var(--bg-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        button {
+            background: var(--primary-dark);
+            color: var(--bg);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        select:focus, button:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.2);
+        }
+
+        .file-input {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input label {
+            display: inline-block;
+            background: var(--bg-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input label:hover {
+            border-color: var(--primary);
+        }
+
+        .toggle-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-controls:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .status {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 12px;
+            color: var(--text-dim);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .performance-info {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 12px;
+            color: var(--text-dim);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            min-width: 150px;
+        }
+
+        .error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff4444;
+            border-radius: 8px;
+            padding: 20px;
+            color: #ff4444;
+            text-align: center;
+            z-index: 2000;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--primary);
+            font-size: 18px;
+            text-align: center;
+            z-index: 2000;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                margin: 0;
+                border-radius: 0;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .control-group {
+                margin-right: 0;
+                justify-content: space-between;
+            }
+
+            .control-group label {
+                min-width: auto;
+            }
+
+            #visualizer {
+                font-size: 6px;
+            }
+
+            .toggle-controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="loading" id="loading">
+            🎵 Loading Parallax Visualizer...
+        </div>
+
+        <div class="error" id="error" style="display: none;">
+            <h3>⚠️ Demo Not Available</h3>
+            <p>This demo requires a modern browser with Web Audio API support.</p>
+        </div>
+
+        <div class="visualizer-container">
+            <div id="visualizer"></div>
+            
+            <button class="toggle-controls" onclick="toggleControls()" title="Toggle Controls">⚙️</button>
+            
+            <div class="controls" id="controls">
+                <div class="control-group">
+                    <label>Mode:</label>
+                    <select id="modeSelect">
+                        <option value="bars">Bars</option>
+                        <option value="matrix">Matrix</option>
+                        <option value="wave">Wave</option>
+                        <option value="spiral">Spiral</option>
+                        <option value="rain">Rain</option>
+                        <option value="fire">Fire</option>
+                        <option value="plasma">Plasma</option>
+                        <option value="nebula">Nebula</option>
+                        <option value="quantum">Quantum</option>
+                        <option value="hypercube">Hypercube</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Audio:</label>
+                    <select id="sourceSelect">
+                        <option value="microphone">Microphone</option>
+                        <option value="file">Upload File</option>
+                        <option value="demo">Demo Track</option>
+                    </select>
+                </div>
+
+                <div class="file-input" id="fileInputGroup" style="display: none;">
+                    <input type="file" id="audioFile" accept="audio/*">
+                    <label for="audioFile">Choose File</label>
+                </div>
+
+                <div class="control-group">
+                    <button id="playPauseBtn" disabled>▶️ Play</button>
+                    <button id="stopBtn" disabled>⏹️ Stop</button>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="lolcatToggle" checked> Rainbow Colors
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="adaptiveToggle" checked> Adaptive Quality
+                    </label>
+                </div>
+            </div>
+
+            <div class="status" id="status">
+                Status: Initializing...
+            </div>
+
+            <div class="performance-info" id="performanceInfo">
+                FPS: --<br>
+                Quality: --<br>
+                Performance: --
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the ParallaxVisualizer (this would work when hosted)
+        // For demo purposes, we'll create a simplified version that shows the concept
+
+        class DemoParallaxVisualizer {
+            constructor(options = {}) {
+                this.container = options.container;
+                this.mode = options.mode || 'bars';
+                this.lolcat = options.lolcat !== undefined ? options.lolcat : true;
+                this.isPlaying = false;
+                this.animationId = null;
+                this.time = 0;
+                
+                // Demo audio data
+                this.demoData = new Uint8Array(256);
+                this.fillDemoData();
+                
+                this.init();
+            }
+
+            init() {
+                this.container.style.fontFamily = 'Courier New, monospace';
+                this.container.style.fontSize = '8px';
+                this.container.style.lineHeight = '1';
+                this.container.style.whiteSpace = 'pre';
+                this.container.style.overflow = 'hidden';
+                this.container.style.color = this.lolcat ? '#00ff00' : '#00ff00';
+                
+                this.updateDimensions();
+                window.addEventListener('resize', () => this.updateDimensions());
+            }
+
+            updateDimensions() {
+                const rect = this.container.getBoundingClientRect();
+                this.cols = Math.floor(rect.width / 6); // Approximate char width
+                this.rows = Math.floor(rect.height / 8); // Approximate char height
+            }
+
+            fillDemoData() {
+                // Generate some demo frequency data
+                for (let i = 0; i < this.demoData.length; i++) {
+                    this.demoData[i] = Math.floor(Math.random() * 128 + Math.sin(this.time * 0.01 + i * 0.1) * 64 + 64);
+                }
+            }
+
+            setMode(mode) {
+                this.mode = mode;
+            }
+
+            setLolcat(enabled) {
+                this.lolcat = enabled;
+            }
+
+            start() {
+                this.isPlaying = true;
+                this.animate();
+            }
+
+            stop() {
+                this.isPlaying = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                this.container.textContent = '';
+            }
+
+            animate() {
+                if (!this.isPlaying) return;
+
+                this.time++;
+                this.fillDemoData();
+                
+                const visualization = this.generateVisualization();
+                this.container.textContent = visualization;
+
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+
+            generateVisualization() {
+                const { cols, rows } = this;
+                if (!cols || !rows) return '';
+
+                let output = '';
+                
+                switch (this.mode) {
+                    case 'bars':
+                        return this.generateBars();
+                    case 'matrix':
+                        return this.generateMatrix();
+                    case 'wave':
+                        return this.generateWave();
+                    case 'spiral':
+                        return this.generateSpiral();
+                    default:
+                        return this.generateBars();
+                }
+            }
+
+            generateBars() {
+                const { cols, rows } = this;
+                let output = '';
+                const barWidth = Math.max(1, Math.floor(cols / 32));
+                const numBars = Math.floor(cols / barWidth);
+
+                for (let row = 0; row < rows; row++) {
+                    let line = '';
+                    for (let bar = 0; bar < numBars; bar++) {
+                        const dataIndex = Math.floor((bar / numBars) * this.demoData.length);
+                        const height = Math.floor((this.demoData[dataIndex] / 255) * rows);
+                        const char = row >= (rows - height) ? '█' : ' ';
+                        line += char.repeat(barWidth);
+                    }
+                    output += line.padEnd(cols, ' ') + '\n';
+                }
+                return output;
+            }
+
+            generateMatrix() {
+                const { cols, rows } = this;
+                let output = '';
+                const chars = 'ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ';
+
+                for (let row = 0; row < rows; row++) {
+                    let line = '';
+                    for (let col = 0; col < cols; col++) {
+                        const intensity = this.demoData[col % this.demoData.length] / 255;
+                        if (Math.random() < intensity * 0.3) {
+                            line += chars[Math.floor(Math.random() * chars.length)];
+                        } else {
+                            line += ' ';
+                        }
+                    }
+                    output += line + '\n';
+                }
+                return output;
+            }
+
+            generateWave() {
+                const { cols, rows } = this;
+                let output = '';
+                const midRow = Math.floor(rows / 2);
+
+                for (let row = 0; row < rows; row++) {
+                    let line = '';
+                    for (let col = 0; col < cols; col++) {
+                        const wavePos = Math.sin((col / cols) * Math.PI * 4 + this.time * 0.1) * (rows / 4);
+                        const targetRow = midRow + wavePos;
+                        const intensity = this.demoData[col % this.demoData.length] / 255;
+                        
+                        if (Math.abs(row - targetRow) < 2 && intensity > 0.3) {
+                            line += '~';
+                        } else {
+                            line += ' ';
+                        }
+                    }
+                    output += line + '\n';
+                }
+                return output;
+            }
+
+            generateSpiral() {
+                const { cols, rows } = this;
+                let output = '';
+                const centerX = cols / 2;
+                const centerY = rows / 2;
+
+                for (let row = 0; row < rows; row++) {
+                    let line = '';
+                    for (let col = 0; col < cols; col++) {
+                        const dx = col - centerX;
+                        const dy = row - centerY;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx);
+                        
+                        const spiralPos = (angle + dist * 0.1 - this.time * 0.02) % (Math.PI * 2);
+                        const intensity = this.demoData[Math.floor(dist) % this.demoData.length] / 255;
+                        
+                        if (Math.abs(spiralPos) < intensity && dist < Math.min(centerX, centerY)) {
+                            line += '○';
+                        } else {
+                            line += ' ';
+                        }
+                    }
+                    output += line + '\n';
+                }
+                return output;
+            }
+        }
+
+        // Demo initialization
+        let visualizer = null;
+        let controlsVisible = true;
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `Status: ${message}`;
+        }
+
+        function updatePerformance() {
+            const perfInfo = document.getElementById('performanceInfo');
+            const fps = Math.floor(Math.random() * 10) + 55; // Simulate FPS
+            const quality = Math.floor(Math.random() * 20) + 80; // Simulate quality
+            const grade = fps > 55 ? 'Excellent' : fps > 45 ? 'Good' : 'Fair';
+            
+            perfInfo.innerHTML = `FPS: ${fps}<br>Quality: ${quality}%<br>Performance: ${grade}`;
+        }
+
+        function initDemo() {
+            const container = document.getElementById('visualizer');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+
+            try {
+                visualizer = new DemoParallaxVisualizer({
+                    container: container,
+                    mode: 'bars',
+                    lolcat: true
+                });
+
+                loading.style.display = 'none';
+                updateStatus('Demo ready - Select audio source to begin');
+                
+                // Update performance info periodically
+                setInterval(updatePerformance, 1000);
+                
+                // Setup event listeners
+                setupEventListeners();
+
+            } catch (err) {
+                console.error('Demo initialization failed:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+            }
+        }
+
+        function setupEventListeners() {
+            const modeSelect = document.getElementById('modeSelect');
+            const sourceSelect = document.getElementById('sourceSelect');
+            const fileInput = document.getElementById('audioFile');
+            const fileInputGroup = document.getElementById('fileInputGroup');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const lolcatToggle = document.getElementById('lolcatToggle');
+
+            modeSelect.addEventListener('change', (e) => {
+                if (visualizer) {
+                    visualizer.setMode(e.target.value);
+                    updateStatus(`Mode changed to: ${e.target.value}`);
+                }
+            });
+
+            sourceSelect.addEventListener('change', (e) => {
+                const value = e.target.value;
+                
+                if (value === 'file') {
+                    fileInputGroup.style.display = 'block';
+                    updateStatus('Please select an audio file');
+                    playPauseBtn.disabled = true;
+                } else {
+                    fileInputGroup.style.display = 'none';
+                    playPauseBtn.disabled = false;
+                    
+                    if (value === 'microphone') {
+                        updateStatus('Microphone ready (demo mode - no actual audio)');
+                    } else if (value === 'demo') {
+                        updateStatus('Demo track ready');
+                    }
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    updateStatus(`File selected: ${file.name} (demo mode)`);
+                    playPauseBtn.disabled = false;
+                }
+            });
+
+            playPauseBtn.addEventListener('click', () => {
+                if (!visualizer.isPlaying) {
+                    visualizer.start();
+                    playPauseBtn.textContent = '⏸️ Pause';
+                    stopBtn.disabled = false;
+                    updateStatus('Visualization running');
+                } else {
+                    visualizer.stop();
+                    playPauseBtn.textContent = '▶️ Play';
+                    updateStatus('Visualization paused');
+                }
+            });
+
+            stopBtn.addEventListener('click', () => {
+                visualizer.stop();
+                playPauseBtn.textContent = '▶️ Play';
+                stopBtn.disabled = true;
+                updateStatus('Visualization stopped');
+            });
+
+            lolcatToggle.addEventListener('change', (e) => {
+                visualizer.setLolcat(e.target.checked);
+                updateStatus(`Rainbow colors: ${e.target.checked ? 'enabled' : 'disabled'}`);
+            });
+        }
+
+        window.toggleControls = function() {
+            const controls = document.getElementById('controls');
+            controlsVisible = !controlsVisible;
+            controls.classList.toggle('hidden', !controlsVisible);
+        };
+
+        // Start the demo
+        document.addEventListener('DOMContentLoaded', initDemo);
+
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'h' || e.key === 'H') {
+                toggleControls();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                const playPauseBtn = document.getElementById('playPauseBtn');
+                if (!playPauseBtn.disabled) {
+                    playPauseBtn.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

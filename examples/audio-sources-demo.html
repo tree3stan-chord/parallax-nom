@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Visualizer - Audio Sources Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #0f0;
+        }
+        
+        button {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background: rgba(0, 255, 0, 0.2);
+        }
+        
+        button.active {
+            background: #0f0;
+            color: #000;
+        }
+        
+        input[type="file"] {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 5px;
+        }
+        
+        select {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 5px;
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #0f0;
+            background: #000;
+            font-family: monospace;
+            font-size: 8px;
+            line-height: 1;
+            overflow: hidden;
+            white-space: pre;
+        }
+        
+        .drag-over {
+            border-color: #f0f !important;
+            background: rgba(255, 0, 255, 0.1) !important;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #0f0;
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        .error {
+            color: #f00;
+            border-color: #f00;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #0f0;
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        .source-list {
+            margin-top: 10px;
+        }
+        
+        .source-item {
+            padding: 5px;
+            margin: 5px 0;
+            border-left: 3px solid #0f0;
+            background: rgba(0, 255, 0, 0.02);
+        }
+        
+        .source-item.active {
+            border-left-color: #ff0;
+            background: rgba(255, 255, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Parallax Visualizer - Audio Sources Demo</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Audio Source Control:</label>
+                <button id="micBtn">Start Microphone</button>
+                <button id="fileBtn">Upload Audio File</button>
+                <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                <button id="urlBtn">Load from URL</button>
+                <button id="streamBtn" disabled>Use Stream (requires setup)</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Microphone Quality:</label>
+                <button id="defaultMic">Default</button>
+                <button id="hqMic">High Quality</button>
+                <button id="musicMic">Music Optimized</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Playback Control:</label>
+                <button id="playBtn" disabled>Play</button>
+                <button id="pauseBtn" disabled>Pause</button>
+                <button id="stopBtn">Stop</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Test URL:</label>
+                <input type="url" id="urlInput" placeholder="https://example.com/audio.mp3" style="width: 300px;">
+            </div>
+        </div>
+        
+        <div id="visualizer" class="visualizer">
+            Drop audio files here or use the controls above to start visualization...
+        </div>
+        
+        <div id="status" class="status">
+            Ready - Select an audio source to begin
+        </div>
+        
+        <div class="info-panel">
+            <h3>Audio Source Manager</h3>
+            <div id="sourceStats">No sources added yet</div>
+            <div class="source-list" id="sourceList"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import ParallaxVisualizer, { 
+            AudioSourceTypes, 
+            createAudioSource 
+        } from '../src/index.js';
+        import { AudioSourceManager, AudioSourcePresets } from '../src/utils/AudioSourceManager.js';
+        import { createFileInputButton } from '../src/utils/FileHandler.js';
+
+        // Create visualizer instance
+        const visualizer = new ParallaxVisualizer({
+            container: '#visualizer',
+            mode: 'bars', // We'll add basic visualization in Phase 3
+            autoStart: false,
+            fileInput: true,
+            fileDropTarget: '#visualizer'
+        });
+
+        // Create source manager
+        const sourceManager = new AudioSourceManager();
+        
+        // DOM elements
+        const micBtn = document.getElementById('micBtn');
+        const fileBtn = document.getElementById('fileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const urlBtn = document.getElementById('urlBtn');
+        const streamBtn = document.getElementById('streamBtn');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const sourceStats = document.getElementById('sourceStats');
+        const sourceList = document.getElementById('sourceList');
+        const urlInput = document.getElementById('urlInput');
+        
+        // Quality preset buttons
+        const defaultMic = document.getElementById('defaultMic');
+        const hqMic = document.getElementById('hqMic');
+        const musicMic = document.getElementById('musicMic');
+        
+        let currentMicType = 'default';
+
+        // Basic bars visualization for demo
+        visualizer.registerVisualization('bars', ({ frequencyData, dimensions }) => {
+            if (!frequencyData) return '';
+            
+            const { cols, rows } = dimensions;
+            const barWidth = Math.floor(cols / 32);
+            let output = '';
+            
+            for (let row = 0; row < rows; row++) {
+                let line = '';
+                for (let col = 0; col < cols; col++) {
+                    const barIndex = Math.floor(col / barWidth);
+                    const frequency = frequencyData[barIndex] || 0;
+                    const barHeight = Math.floor((frequency / 255) * rows);
+                    
+                    if (rows - row <= barHeight) {
+                        line += '█';
+                    } else {
+                        line += ' ';
+                    }
+                }
+                output += line + '\n';
+            }
+            
+            return output;
+        });
+
+        // Event handlers
+        micBtn.addEventListener('click', async () => {
+            try {
+                let sourceConfig;
+                switch (currentMicType) {
+                    case 'hq':
+                        sourceConfig = AudioSourcePresets.getHighQualityMicrophone();
+                        break;
+                    case 'music':
+                        sourceConfig = AudioSourcePresets.getMusicOptimizedMicrophone();
+                        break;
+                    default:
+                        sourceConfig = AudioSourcePresets.getDefaultMicrophone();
+                }
+                
+                sourceConfig.name = `Microphone (${currentMicType})`;
+                
+                sourceManager.addSource('microphone', sourceConfig);
+                await visualizer.setAudioSource(sourceConfig);
+                sourceManager.setActiveSource('microphone');
+                
+                updateStatus('Microphone active');
+                updateButtons();
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, true);
+            }
+        });
+
+        fileBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    const sourceId = `file_${Date.now()}`;
+                    sourceManager.createFileSource(sourceId, file);
+                    await visualizer.setAudioSource(sourceManager.getSource(sourceId).config);
+                    sourceManager.setActiveSource(sourceId);
+                    
+                    updateStatus(`Loaded: ${file.name}`);
+                    updateButtons();
+                } catch (error) {
+                    updateStatus(`Error loading file: ${error.message}`, true);
+                }
+            }
+        });
+
+        urlBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url) {
+                updateStatus('Please enter a URL', true);
+                return;
+            }
+            
+            try {
+                updateStatus('Loading audio from URL...');
+                const audio = new Audio();
+                audio.crossOrigin = 'anonymous';
+                audio.src = url;
+                
+                await new Promise((resolve, reject) => {
+                    audio.oncanplaythrough = resolve;
+                    audio.onerror = () => reject(new Error('Failed to load audio from URL'));
+                    audio.load();
+                });
+                
+                const sourceId = `url_${Date.now()}`;
+                const sourceConfig = createAudioSource(AudioSourceTypes.FILE, { file: audio });
+                sourceConfig.name = url.split('/').pop() || 'URL Audio';
+                
+                sourceManager.addSource(sourceId, sourceConfig);
+                await visualizer.setAudioSource(sourceConfig);
+                sourceManager.setActiveSource(sourceId);
+                
+                updateStatus(`Loaded from URL: ${url}`);
+                updateButtons();
+            } catch (error) {
+                updateStatus(`Error loading URL: ${error.message}`, true);
+            }
+        });
+
+        // Quality preset handlers
+        defaultMic.addEventListener('click', () => {
+            currentMicType = 'default';
+            updateMicButtons();
+        });
+        
+        hqMic.addEventListener('click', () => {
+            currentMicType = 'hq';
+            updateMicButtons();
+        });
+        
+        musicMic.addEventListener('click', () => {
+            currentMicType = 'music';
+            updateMicButtons();
+        });
+
+        playBtn.addEventListener('click', () => {
+            visualizer.play();
+            updateButtons();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            visualizer.pause();
+            updateButtons();
+        });
+
+        stopBtn.addEventListener('click', () => {
+            visualizer.stop();
+            updateButtons();
+        });
+
+        // Source manager callbacks
+        sourceManager.on('onSourceAdd', updateSourceDisplay);
+        sourceManager.on('onSourceRemove', updateSourceDisplay);
+        sourceManager.on('onSourceSwitch', updateSourceDisplay);
+
+        // Visualizer events
+        visualizer.on('fileLoaded', (e) => {
+            const file = e.detail.file;
+            updateStatus(`File loaded via drag & drop: ${file.name}`);
+        });
+
+        visualizer.on('dragOver', () => {
+            updateStatus('Drop audio file to load...');
+        });
+
+        visualizer.on('dragLeave', () => {
+            updateStatus('Ready');
+        });
+
+        visualizer.on('error', (e) => {
+            updateStatus(`Error: ${e.detail.message}`, true);
+        });
+
+        // UI update functions
+        function updateStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = isError ? 'status error' : 'status';
+        }
+
+        function updateButtons() {
+            const activeSource = sourceManager.getActiveSource();
+            const isFileSource = activeSource && activeSource.config.type === 'file';
+            const isPlaying = visualizer.audioHandler.isPlaying;
+            
+            playBtn.disabled = !isFileSource || isPlaying;
+            pauseBtn.disabled = !isFileSource || !isPlaying;
+        }
+
+        function updateMicButtons() {
+            [defaultMic, hqMic, musicMic].forEach(btn => btn.classList.remove('active'));
+            
+            switch (currentMicType) {
+                case 'hq':
+                    hqMic.classList.add('active');
+                    break;
+                case 'music':
+                    musicMic.classList.add('active');
+                    break;
+                default:
+                    defaultMic.classList.add('active');
+            }
+        }
+
+        function updateSourceDisplay() {
+            const stats = sourceManager.getStats();
+            const sources = sourceManager.getAllSources();
+            
+            sourceStats.textContent = `Total sources: ${stats.total} | Active: ${stats.active || 'None'}`;
+            
+            sourceList.innerHTML = '';
+            sources.forEach(source => {
+                const div = document.createElement('div');
+                div.className = 'source-item' + (source.id === stats.active ? ' active' : '');
+                div.innerHTML = `
+                    <strong>${source.metadata.name}</strong> (${source.config.type})
+                    <br><small>Added: ${source.metadata.added.toLocaleTimeString()}</small>
+                `;
+                sourceList.appendChild(div);
+            });
+        }
+
+        // Initialize
+        updateMicButtons();
+        updateButtons();
+        updateStatus('Demo ready - try different audio sources!');
+        
+        // Example: Add a pre-configured stream source (commented out)
+        // if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        //     streamBtn.disabled = false;
+        //     streamBtn.addEventListener('click', async () => {
+        //         try {
+        //             const stream = await navigator.mediaDevices.getDisplayMedia({ audio: true });
+        //             const sourceConfig = AudioSourcePresets.getStreamWithGain(stream, 0.5);
+        //             sourceManager.addSource('display_stream', sourceConfig);
+        //             await visualizer.setAudioSource(sourceConfig);
+        //             sourceManager.setActiveSource('display_stream');
+        //             updateStatus('Display stream active');
+        //         } catch (error) {
+        //             updateStatus(`Stream error: ${error.message}`, true);
+        //         }
+        //     });
+        // }
+    </script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Visualizer - Full Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        .main-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 20, 0, 0.9);
+            border-right: 1px solid #0f0;
+            overflow-y: auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .visualizer-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            font-family: monospace;
+            font-size: 8px;
+            line-height: 1;
+            overflow: hidden;
+            white-space: pre;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .control-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #0a0;
+            border-radius: 3px;
+            background: rgba(0, 40, 0, 0.3);
+        }
+        
+        .control-section h3 {
+            margin: 0 0 10px 0;
+            color: #0f0;
+            font-size: 14px;
+            border-bottom: 1px solid #0a0;
+            padding-bottom: 5px;
+        }
+        
+        button {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 5px 10px;
+            margin: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            border-radius: 2px;
+        }
+        
+        button:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        button.active {
+            background: #0f0;
+            color: #000;
+        }
+        
+        select {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 11px;
+            width: 100%;
+            margin: 3px 0;
+        }
+        
+        input[type="file"] {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 3px;
+            font-family: inherit;
+            font-size: 10px;
+            width: 100%;
+        }
+        
+        .drag-over {
+            border: 2px dashed #f0f !important;
+            background: rgba(255, 0, 255, 0.1) !important;
+        }
+        
+        .status {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #0f0;
+            padding: 5px;
+            font-size: 11px;
+            z-index: 100;
+        }
+        
+        .error {
+            color: #f00 !important;
+            border-color: #f00 !important;
+        }
+        
+        .category-group {
+            margin-bottom: 10px;
+        }
+        
+        .category-title {
+            color: #ff0;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .mode-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px;
+        }
+        
+        .mode-list button {
+            font-size: 9px;
+            padding: 3px 5px;
+            text-align: left;
+        }
+        
+        .info-panel {
+            background: rgba(0, 30, 0, 0.5);
+            border: 1px solid #090;
+            padding: 8px;
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        
+        .toggle-switch {
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            background: #333;
+            border: 1px solid #0f0;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .toggle-slider {
+            width: 18px;
+            height: 18px;
+            background: #0f0;
+            border-radius: 50%;
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            transition: transform 0.2s;
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="control-section">
+                <h3>Audio Sources</h3>
+                <button id="micBtn">🎤 Microphone</button>
+                <button id="fileBtn">📁 Upload File</button>
+                <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                <button id="playBtn" disabled>▶️ Play</button>
+                <button id="pauseBtn" disabled>⏸️ Pause</button>
+                <button id="stopBtn">⏹️ Stop</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>Effects</h3>
+                <label>
+                    Rainbow Colors (lolcat)
+                    <div class="toggle-switch" id="lolcatToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="control-section">
+                <h3>Visualization Modes</h3>
+                <div id="visualizationModes"></div>
+            </div>
+            
+            <div class="control-section">
+                <h3>Mode Info</h3>
+                <div id="modeInfo" class="info-panel">
+                    Select a visualization mode to see details
+                </div>
+            </div>
+        </div>
+        
+        <div class="visualizer-container">
+            <div id="visualizer" class="visualizer">
+                🎵 Parallax Visualizer 🎵
+                
+                Drop audio files here or use controls to start...
+                
+                ◆ 25+ Visualization Modes Available ◆
+                ♫ Real-time Audio Analysis ♫  
+                ✨ ASCII Art Effects ✨
+                🌈 Rainbow Color Support 🌈
+            </div>
+            
+            <div id="status" class="status">
+                Ready - Select an audio source and visualization mode to begin
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import ParallaxVisualizer, { 
+            visualizationRegistry,
+            AudioSourcePresets
+        } from '../src/index.js';
+
+        // Create visualizer instance
+        const visualizer = new ParallaxVisualizer({
+            container: '#visualizer',
+            mode: 'bars',
+            autoStart: false,
+            lolcat: false,
+            fileInput: true,
+            fileDropTarget: '#visualizer'
+        });
+
+        // DOM elements
+        const micBtn = document.getElementById('micBtn');
+        const fileBtn = document.getElementById('fileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const lolcatToggle = document.getElementById('lolcatToggle');
+        const visualizationModes = document.getElementById('visualizationModes');
+        const modeInfo = document.getElementById('modeInfo');
+
+        let currentMode = 'bars';
+        let isLolcatEnabled = false;
+
+        // Initialize visualization mode selector
+        function initializeModeSelector() {
+            const categories = visualizationRegistry.getCategories();
+            
+            categories.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-group';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'category-title';
+                titleDiv.textContent = category.toUpperCase();
+                categoryDiv.appendChild(titleDiv);
+                
+                const modeListDiv = document.createElement('div');
+                modeListDiv.className = 'mode-list';
+                
+                const modes = visualizationRegistry.getModesByCategory(category);
+                modes.forEach(mode => {
+                    const button = document.createElement('button');
+                    button.textContent = mode;
+                    button.onclick = () => selectMode(mode);
+                    if (mode === currentMode) button.classList.add('active');
+                    modeListDiv.appendChild(button);
+                });
+                
+                categoryDiv.appendChild(modeListDiv);
+                visualizationModes.appendChild(categoryDiv);
+            });
+        }
+
+        function selectMode(mode) {
+            // Update active button
+            visualizationModes.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Set mode
+            currentMode = mode;
+            visualizer.setVisualizationMode(mode);
+            
+            // Update info panel
+            const info = visualizationRegistry.getVisualizationInfo(mode);
+            if (info) {
+                modeInfo.innerHTML = `
+                    <strong>${info.name}</strong><br>
+                    <em>Category: ${info.category}</em><br>
+                    <br>
+                    ${info.description}<br>
+                    <br>
+                    <strong>Complexity:</strong> ${info.complexity}<br>
+                    <br>
+                    <strong>Features:</strong><br>
+                    ${info.features.map(f => `• ${f}`).join('<br>')}
+                `;
+            }
+            
+            updateStatus(`Switched to ${mode} visualization`);
+        }
+
+        // Event handlers
+        micBtn.addEventListener('click', async () => {
+            try {
+                const sourceConfig = AudioSourcePresets.getDefaultMicrophone();
+                await visualizer.setAudioSource(sourceConfig);
+                updateStatus('Microphone active');
+                updateButtons();
+            } catch (error) {
+                updateStatus(`Microphone error: ${error.message}`, true);
+            }
+        });
+
+        fileBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    await visualizer.setAudioSource({
+                        type: 'file',
+                        file: file
+                    });
+                    updateStatus(`Loaded: ${file.name}`);
+                    updateButtons();
+                } catch (error) {
+                    updateStatus(`File error: ${error.message}`, true);
+                }
+            }
+        });
+
+        playBtn.addEventListener('click', () => {
+            visualizer.play();
+            updateButtons();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            visualizer.pause();
+            updateButtons();
+        });
+
+        stopBtn.addEventListener('click', () => {
+            visualizer.stop();
+            updateButtons();
+        });
+
+        lolcatToggle.addEventListener('click', () => {
+            isLolcatEnabled = !isLolcatEnabled;
+            lolcatToggle.classList.toggle('active', isLolcatEnabled);
+            visualizer.options.lolcat = isLolcatEnabled;
+            updateStatus(`Rainbow colors ${isLolcatEnabled ? 'enabled' : 'disabled'}`);
+        });
+
+        // Visualizer events
+        visualizer.on('fileLoaded', (e) => {
+            updateStatus(`File loaded: ${e.detail.file.name}`);
+        });
+
+        visualizer.on('dragOver', () => {
+            updateStatus('Drop file to load...');
+        });
+
+        visualizer.on('dragLeave', () => {
+            updateStatus('Ready');
+        });
+
+        visualizer.on('error', (e) => {
+            updateStatus(`Error: ${e.detail.message || e.detail}`, true);
+        });
+
+        visualizer.on('modeChange', (e) => {
+            updateStatus(`Mode: ${e.detail}`);
+        });
+
+        // Utility functions
+        function updateStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = isError ? 'status error' : 'status';
+        }
+
+        function updateButtons() {
+            const isFileSource = visualizer.audioHandler.currentSource === 'file';
+            const isPlaying = visualizer.audioHandler.isPlaying;
+            
+            playBtn.disabled = !isFileSource || isPlaying;
+            pauseBtn.disabled = !isFileSource || !isPlaying;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch (e.key) {
+                case 'm':
+                case 'M':
+                    micBtn.click();
+                    break;
+                case 'f':
+                case 'F':
+                    fileBtn.click();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    if (visualizer.audioHandler.isPlaying) {
+                        pauseBtn.click();
+                    } else {
+                        playBtn.click();
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    stopBtn.click();
+                    break;
+                case 'c':
+                case 'C':
+                    lolcatToggle.click();
+                    break;
+                case 'r':
+                case 'R':
+                    // Random mode
+                    const allModes = visualizer.getAvailableModes();
+                    const randomMode = allModes[Math.floor(Math.random() * allModes.length)];
+                    const randomButton = Array.from(visualizationModes.querySelectorAll('button'))
+                        .find(btn => btn.textContent === randomMode);
+                    if (randomButton) randomButton.click();
+                    break;
+            }
+        });
+
+        // Initialize
+        initializeModeSelector();
+        selectMode('bars');
+        updateButtons();
+        updateStatus('🎵 Parallax Visualizer loaded! Press M for mic, F for file, Space to play/pause, C for colors, R for random mode');
+        
+        console.log('🎵 Parallax Visualizer Demo Ready!');
+        console.log('Available modes:', visualizer.getAvailableModes());
+        console.log('Keyboard shortcuts: M=mic, F=file, Space=play/pause, S=stop, C=colors, R=random');
+    </script>
+</body>
+</html>

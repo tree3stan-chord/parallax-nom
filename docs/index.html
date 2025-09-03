@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Visualizer - Real-time ASCII Audio Visualization</title>
+    <meta name="description" content="Transform audio into mesmerizing ASCII art patterns with 25+ visualization modes. Perfect for web applications and interactive experiences.">
+    <meta name="keywords" content="audio, visualization, ascii, music, web audio api, react, javascript">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://parallax-visualizer.dev/">
+    <meta property="og:title" content="Parallax Visualizer - ASCII Audio Visualization">
+    <meta property="og:description" content="Transform audio into mesmerizing ASCII art patterns with 25+ visualization modes">
+    <meta property="og:image" content="https://parallax-visualizer.dev/preview.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://parallax-visualizer.dev/">
+    <meta property="twitter:title" content="Parallax Visualizer - ASCII Audio Visualization">
+    <meta property="twitter:description" content="Transform audio into mesmerizing ASCII art patterns with 25+ visualization modes">
+    <meta property="twitter:image" content="https://parallax-visualizer.dev/preview.png">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+    
+    <style>
+        :root {
+            --primary: #00ff00;
+            --primary-dark: #00aa00;
+            --bg: #000;
+            --bg-light: #0a0a0a;
+            --text: #fff;
+            --text-dim: #aaa;
+            --border: #333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg) 0%, #001100 100%);
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" x="10" font-family="monospace" font-size="6" fill="%23004400" opacity="0.3">█▓▒░</text><text y="70" x="30" font-family="monospace" font-size="8" fill="%23004400" opacity="0.2">♫♪♬</text><text y="30" x="60" font-family="monospace" font-size="10" fill="%23004400" opacity="0.1">◆◇○●</text></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            from { background-position: 0 0; }
+            to { background-position: 100px 100px; }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary), #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px var(--primary)); }
+            to { filter: drop-shadow(0 0 30px var(--primary)); }
+        }
+        
+        .hero .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+        
+        .hero .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            line-height: 1.8;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            color: var(--bg);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--bg);
+            transform: translateY(-3px);
+        }
+        
+        .demo-section {
+            padding: 5rem 0;
+            background: var(--bg-light);
+        }
+        
+        .demo-container {
+            background: var(--bg);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 255, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: var(--primary);
+            color: var(--bg);
+            padding: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .features {
+            padding: 5rem 0;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(45deg, var(--primary), #00aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 255, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .modes-showcase {
+            padding: 5rem 0;
+            background: var(--bg-light);
+        }
+        
+        .modes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        
+        .mode-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-card:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+        
+        .mode-category {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .mode-name {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .code-example {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .code-example pre {
+            margin: 0;
+            color: var(--primary);
+        }
+        
+        .footer {
+            background: var(--bg-light);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>🎵 Parallax Visualizer</h1>
+                <p class="subtitle">Real-time ASCII Audio Visualization</p>
+                <p class="description">
+                    Transform audio into mesmerizing ASCII art patterns that react to music in real-time. 
+                    25+ stunning visualization modes, from classic frequency bars to 4D hypercubes. 
+                    Perfect for web applications, live coding sessions, and interactive experiences.
+                </p>
+                <div class="cta-buttons">
+                    <a href="demo.html" class="btn btn-primary">🎮 Try Live Demo</a>
+                    <a href="https://github.com/yourusername/parallax-visualizer" class="btn btn-secondary">⭐ View on GitHub</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="demo-section">
+        <div class="container">
+            <div class="demo-container">
+                <div class="demo-header">
+                    Interactive Demo - Try it Now!
+                </div>
+                <iframe 
+                    src="demo.html" 
+                    width="100%" 
+                    height="600" 
+                    frameborder="0"
+                    title="Parallax Visualizer Demo">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>✨ Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <h3>25+ Visualization Modes</h3>
+                    <p>From basic frequency bars to complex 4D hypercubes, matrix rain, quantum fields, and more. Each mode responds uniquely to audio frequencies.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🎤</span>
+                    <h3>Multiple Audio Sources</h3>
+                    <p>Microphone input, file upload, media streams, or custom Web Audio API nodes. Switch sources on the fly with seamless transitions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⚛️</span>
+                    <h3>React Ready</h3>
+                    <p>Pre-built React components, hooks, and context providers. Drop into any React app with TypeScript support and full IntelliSense.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🌈</span>
+                    <h3>Rainbow Effects</h3>
+                    <p>Beautiful lolcat-style color animations that flow across the ASCII art. Toggle colors on/off with smooth transitions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>High Performance</h3>
+                    <p>Adaptive quality system, render caching, memory management, and 60fps optimization. Smooth on all devices.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔧</span>
+                    <h3>Fully Customizable</h3>
+                    <p>Create custom visualizations, register new modes, and extend functionality. Complete API with event system.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="modes-showcase">
+        <div class="container">
+            <h2>🎨 Visualization Modes</h2>
+            <div class="modes-grid">
+                <div class="mode-card">
+                    <div class="mode-category">Basic</div>
+                    <div class="mode-name">bars</div>
+                    <p>Classic frequency bars with sparkle effects</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Basic</div>
+                    <div class="mode-name">matrix</div>
+                    <p>Matrix rain with Japanese characters</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Basic</div>
+                    <div class="mode-name">spiral</div>
+                    <p>Audio-reactive spiral galaxy</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Advanced</div>
+                    <div class="mode-name">nebula</div>
+                    <p>Cosmic nebula clouds</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Advanced</div>
+                    <div class="mode-name">quantum</div>
+                    <p>Quantum field visualization</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Extreme</div>
+                    <div class="mode-name">hypercube</div>
+                    <p>4D hypercube projection</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Extreme</div>
+                    <div class="mode-name">glitch</div>
+                    <p>Digital glitch art effects</p>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-category">Custom</div>
+                    <div class="mode-name">your-mode</div>
+                    <p>Create your own visualizations</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>🚀 Quick Start</h2>
+            
+            <h3>Installation</h3>
+            <div class="code-example">
+                <pre><code>npm install parallax-visualizer</code></pre>
+            </div>
+            
+            <h3>Vanilla JavaScript</h3>
+            <div class="code-example">
+                <pre><code>import ParallaxVisualizer from 'parallax-visualizer';
+
+const visualizer = new ParallaxVisualizer({
+    container: '#visualizer',
+    mode: 'matrix',
+    audioSource: 'microphone',
+    lolcat: true
+});</code></pre>
+            </div>
+            
+            <h3>React</h3>
+            <div class="code-example">
+                <pre><code>import { ParallaxVisualizer } from 'parallax-visualizer/react';
+
+function App() {
+    return (
+        &lt;ParallaxVisualizer
+            mode="bars"
+            audioSource="microphone"
+            lolcat={true}
+            style={{ width: '100%', height: '400px' }}
+        /&gt;
+    );
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="API.md">📖 API Documentation</a>
+                <a href="https://github.com/yourusername/parallax-visualizer">🔧 GitHub</a>
+                <a href="https://npmjs.com/package/parallax-visualizer">📦 NPM</a>
+                <a href="examples/">💡 Examples</a>
+                <a href="demo.html">🎮 Demo</a>
+            </div>
+            <p>&copy; 2024 Parallax Visualizer. Made with ❤️ and lots of ASCII characters.</p>
+        </div>
+    </footer>
+</body>
+</html>
