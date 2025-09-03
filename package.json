@@ -1,6 +1,7 @@
 {
   "name": "parallax-visualizer",
   "version": "1.0.0",
+  "type": "module",
   "description": "Real-time ASCII audio visualizer with 25+ mesmerizing modes. Transform music into art with frequency bars, matrix rain, quantum fields, and more. Perfect for web apps, React projects, and interactive experiences.",
   "main": "dist/parallax-visualizer.cjs.js",
   "module": "dist/parallax-visualizer.esm.js",
@@ -28,7 +29,7 @@
   "scripts": {
     "build": "npm run build:rollup && npm run build:webpack",
     "build:rollup": "rollup -c rollup.config.js",
-    "build:webpack": "webpack --mode production",
+    "build:webpack": "webpack --mode production --config webpack.config.mjs",
     "build:dev": "rollup -c rollup.config.js --watch",
     "build:docs": "mkdir -p docs-dist && cp -r docs/* docs-dist/",
     "dev": "webpack serve --mode development",
