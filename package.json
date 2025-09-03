@@ -1,6 +1,6 @@
 {
   "name": "parallax-visualizer",
-  "version": "1.0.0",
+  "version": "1.0.8",
   "type": "module",
   "description": "Real-time ASCII audio visualizer with 25+ mesmerizing modes. Transform music into art with frequency bars, matrix rain, quantum fields, and more. Perfect for web apps, React projects, and interactive experiences.",
   "main": "dist/parallax-visualizer.cjs.cjs",
