@@ -7,7 +7,7 @@
 
 Transform audio into mesmerizing ASCII art patterns that react to music in real-time. Perfect for web applications, live coding sessions, and interactive audio experiences.
 
-![Demo GIF](https://via.placeholder.com/800x400/000000/00ff00?text=ASCII+Audio+Visualization)
+![Demo GIF](https://raw.githubusercontent.com/tree3stan-chord/parallax-nom/trunk/assets/demo.gif)
 
 ## ✨ Features
 
@@ -287,7 +287,7 @@ npm run lint
 
 ## 📄 License
 
-MIT © [Your Name](https://github.com/yourusername)
+MIT © [matthew forrester wolffe](https://musicsian.com)
 
 ## 🙏 Acknowledgments
 
@@ -297,6 +297,6 @@ MIT © [Your Name](https://github.com/yourusername)
 
 ---
 
-**[⭐ Star this project](https://github.com/yourusername/parallax-visualizer)** if you find it useful!
+**[⭐ Star this project](https://github.com/tree3stan-chord/parallax-nom)** if you find it useful!
 
 Made with ❤️ and lots of ASCII characters

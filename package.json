@@ -60,15 +60,15 @@
     "interactive",
     "component"
   ],
-  "author": "Parallax Visualizer Contributors",
+  "author": "matthew forrester wolffe <espadonne@outlook.com> (https://musicsian.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/parallax-visualizer.git"
+    "url": "https://github.com/tree3stan-chord/parallax-nom.git"
   },
-  "homepage": "https://yourusername.github.io/parallax-visualizer",
+  "homepage": "https://github.com/tree3stan-chord/parallax-nom",
   "bugs": {
-    "url": "https://github.com/yourusername/parallax-visualizer/issues"
+    "url": "https://github.com/tree3stan-chord/parallax-nom/issues"
   },
   "devDependencies": {
     "@babel/core": "^7.22.0",
